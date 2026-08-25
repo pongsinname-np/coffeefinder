@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Coffee Finder</title>
+  <title>Coffee Finder - Thailand</title>
   <style>
     * {
       margin: 0;
@@ -21,6 +21,21 @@
     .container {
       max-width: 900px;
       margin: 0 auto;
+    }
+    
+    .version-info {
+      text-align: right;
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 20px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 6px;
+    }
+    
+    .version-info span {
+      font-weight: 500;
+      color: #666;
     }
     
     .header {
@@ -165,16 +180,6 @@
       word-wrap: break-word;
     }
     
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: #999;
-    }
-    
-    .empty-state p {
-      font-size: 14px;
-    }
-    
     .info-box {
       background: #f5f3f0;
       border-left: 4px solid #8B6F47;
@@ -184,19 +189,33 @@
       color: #666;
       margin-bottom: 16px;
     }
+    
+    .info-box a {
+      color: #8B6F47;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    
+    .info-box a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="version-info">
+      Last updated: <span id="deployTime">Loading...</span>
+    </div>
+    
     <div class="header">
-      <h1>☕ Coffee Finder</h1>
-      <p>AI-powered coffee search and recommendations</p>
+      <h1>☕ Coffee Finder Thailand</h1>
+      <p>AI-powered coffee recommendations from Shopee & Lazada Thailand</p>
     </div>
     
     <div class="section">
       <h2>Setup - Gemini API Key</h2>
       <div class="info-box">
-        Get your free API key from <a href="https://aistudio.google.com" target="_blank" style="color: #8B6F47;">Google AI Studio</a>. Your key stays in your browser only.
+        Get your free API key from <a href="https://aistudio.google.com" target="_blank">Google AI Studio</a>. Your key stays in your browser only.
       </div>
       <div class="form-group">
         <label>Paste your Gemini API Key</label>
@@ -204,20 +223,22 @@
           id="apiKey" 
           type="password" 
           placeholder="AIzaSy..."
-          value="AQ.Ab8RN6L8-nVjLyNE5nYDFKBL8vqumfTvZFqm_77YGV7V3lgn0w"
         >
       </div>
     </div>
     
     <div class="section">
       <h2>Search for Coffee</h2>
+      <div class="info-box">
+        ค้นหาในธรรมชาติ เช่น "medium roast หวานๆ ไม่เปรี้ยว" หรือ "Ethiopian natural coffee งบ 500 บาท"
+      </div>
       <div class="search-controls">
         <div class="form-group">
           <label>What are you looking for?</label>
           <input 
             id="query" 
             type="text" 
-            placeholder="e.g., medium roast Thailand single origin"
+            placeholder="e.g., medium roast Thailand หวานหอมดอกไม้ งบ 500"
           >
         </div>
         <button id="searchBtn" onclick="searchCoffee()">Search</button>
@@ -229,6 +250,90 @@
   </div>
 
   <script>
+    const DEPLOYMENT_TIME = new Date().toLocaleString('th-TH', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'Asia/Bangkok'
+    });
+    
+    document.getElementById('deployTime').textContent = DEPLOYMENT_TIME;
+
+    const COFFEE_RESEARCH_PROMPT = `You are an AI Coffee Product Researcher for Thai coffee shopping.
+
+Your job: Search for coffee beans available in Thailand, primarily from Shopee Thailand and Lazada Thailand.
+
+CRITICAL RULES:
+1. Focus ONLY on Shopee Thailand and Lazada Thailand
+2. Only include products available for purchase in Thailand
+3. Prefer Thai-based sellers located in Thailand
+4. Do NOT invent, guess, or hallucinate product information
+5. If information cannot be found, return null
+6. Distinguish between seller information and AI analysis
+7. Price and ratings may change - treat as observation time data
+
+EXTRACT FROM EACH PRODUCT:
+- Product name and brand
+- Shop name and marketplace (Shopee Thailand / Lazada Thailand)
+- Price in THB and price per 100g
+- Weight/package size
+- Roast level, origin, region, process
+- Tasting notes (from seller if available)
+- Rating, review count
+- Product URL
+- Image URL
+
+AI ANALYSIS (separate from source info):
+- Sweetness score (0-5)
+- Acidity score (0-5)
+- Body score (0-5)
+- Flavor characteristics
+- Overall match score (0-100)
+- Reason for recommendation
+
+RETURN FORMAT:
+Return valid JSON with structure:
+{
+  "products": [
+    {
+      "rank": 1,
+      "product": {
+        "product_name": "",
+        "brand": null,
+        "shop_name": null,
+        "marketplace": "Shopee Thailand",
+        "price": null,
+        "currency": "THB",
+        "weight": null,
+        "price_per_100g": null,
+        "roast_level": null,
+        "origin": null,
+        "region": null,
+        "process": null,
+        "tasting_notes": [],
+        "rating": null,
+        "review_count": null,
+        "product_url": "",
+        "image_url": null
+      },
+      "ai_analysis": {
+        "sweetness_score": null,
+        "acidity_score": null,
+        "body_score": null,
+        "overall_match_score": null,
+        "reason": "",
+        "warning": null
+      }
+    }
+  ],
+  "search_notes": []
+}
+
+Always prefer accuracy over completeness. Never invent data.`;
+
     async function searchCoffee() {
       const apiKey = document.getElementById('apiKey').value.trim();
       const query = document.getElementById('query').value.trim();
@@ -249,7 +354,7 @@
       }
       
       searchBtn.disabled = true;
-      statusEl.textContent = '🔍 Searching for coffee...';
+      statusEl.textContent = '🔍 Searching for coffee in Thailand...';
       statusEl.className = 'status loading';
       resultsEl.innerHTML = '';
       
@@ -262,18 +367,7 @@
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `Search for coffee products matching: "${query}"
-
-List 5-7 coffee products you find. For each product, provide:
-- Product name and brand
-- Price
-- Roast level (light/medium/dark)
-- Origin (country or region)
-- Tasting notes or flavor profile
-- Where you found it (shop/website)
-- URL link (if available)
-
-Format as a simple numbered list. Be specific with real product names and actual information.`
+                text: COFFEE_RESEARCH_PROMPT + '\n\nUser query: ' + query + '\n\nSearch for 5-7 matching coffee products from Shopee Thailand and Lazada Thailand. Return valid JSON only.'
               }]
             }]
           })
@@ -306,14 +400,60 @@ Format as a simple numbered list. Be specific with real product names and actual
     
     function displayResults(content) {
       const resultsEl = document.getElementById('results');
-      resultsEl.innerHTML = `
-        <div class="result-card">
-          <h3>Coffee Search Results</h3>
-          <div class="result-text">
-            ${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+      try {
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const data = JSON.parse(jsonMatch[0]);
+          if (data.products && data.products.length > 0) {
+            resultsEl.innerHTML = data.products.map((item, idx) => `
+              <div class="result-card">
+                <h3>#${item.rank || idx + 1}: ${item.product.product_name}</h3>
+                <div class="result-text">
+<strong>Brand:</strong> ${item.product.brand || 'N/A'}
+<strong>Shop:</strong> ${item.product.shop_name || 'N/A'} (${item.product.marketplace})
+<strong>Price:</strong> ฿${item.product.price || 'N/A'} (฿${item.product.price_per_100g || 'N/A'}/100g)
+<strong>Weight:</strong> ${item.product.weight || 'N/A'}
+<strong>Roast:</strong> ${item.product.roast_level || 'N/A'}
+<strong>Origin:</strong> ${item.product.origin || 'N/A'} ${item.product.region ? '(' + item.product.region + ')' : ''}
+<strong>Process:</strong> ${item.product.process || 'N/A'}
+<strong>Tasting Notes:</strong> ${item.product.tasting_notes.join(', ') || 'N/A'}
+<strong>Rating:</strong> ${item.product.rating || 'N/A'} (${item.product.review_count || 0} reviews)
+
+<strong>Match Score:</strong> ${item.ai_analysis.overall_match_score}/100
+<strong>Sweetness:</strong> ${item.ai_analysis.sweetness_score || 'N/A'}/5
+<strong>Acidity:</strong> ${item.ai_analysis.acidity_score || 'N/A'}/5
+<strong>Body:</strong> ${item.ai_analysis.body_score || 'N/A'}/5
+
+<strong>Why:</strong> ${item.ai_analysis.reason}
+${item.ai_analysis.warning ? '<strong>⚠️ Warning:</strong> ' + item.ai_analysis.warning : ''}
+
+<a href="${item.product.product_url}" target="_blank" style="color: #8B6F47; text-decoration: none;">👉 View on ${item.product.marketplace}</a>
+                </div>
+              </div>
+            `).join('');
+          } else {
+            resultsEl.innerHTML = '<div class="result-card"><p>No products found. Try different keywords.</p></div>';
+          }
+        } else {
+          resultsEl.innerHTML = `
+            <div class="result-card">
+              <h3>Search Results</h3>
+              <div class="result-text">
+${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+              </div>
+            </div>
+          `;
+        }
+      } catch (e) {
+        resultsEl.innerHTML = `
+          <div class="result-card">
+            <h3>Raw Results</h3>
+            <div class="result-text">
+${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
     }
     
     document.getElementById('query').addEventListener('keypress', (e) => {
