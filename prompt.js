@@ -1,3 +1,4 @@
+```javascript
 // prompt.js - Coffee Product Researcher Prompt
 // Edit this file to update the AI prompt without touching index.html
 
@@ -73,7 +74,6 @@ Search queries should combine relevant coffee attributes such as:
 - process
 - roast level
 - tasting notes
-- coffee bean
 - brewing method
 - budget
 - Thai keywords and English keywords when useful
@@ -335,13 +335,41 @@ If no suitable product is found, explain why.
 12. AFFILIATE AND PRODUCT URL
 ==================================================
 
-Always preserve the original product URL when available.
+The product URL MUST come directly from the search result or retrieved source.
 
-Do not modify or fabricate URLs.
+IMPORTANT:
+- NEVER generate, construct, guess, infer, or recreate a product URL.
+- NEVER create a Shopee or Lazada URL from the product name, shop name, product ID, Shop ID, Item ID, or any other information.
+- NEVER modify a URL obtained from the search result.
+- NEVER replace a missing URL with a guessed URL.
+- The product_url must be the exact URL returned by the search engine or retrieved source.
+- The product_url must correspond to the SAME product represented by the product information.
 
-Do not create fake affiliate URLs.
+If the search result provides an exact product page URL:
+- Use that exact URL as product_url.
 
-The product URL should point to the actual product page.
+If the search result does NOT provide an exact product page URL:
+- Set product_url = null.
+
+A search result URL that points to:
+- a Shopee search page
+- a Lazada search page
+- a category page
+- a shop page
+- a general marketplace page
+
+is NOT a valid product_url.
+
+Only use a URL that directly identifies the specific product.
+
+For example, if the search result contains:
+
+title: "Bluekoff Brazil Cerrado 250g"
+url: "https://shopee.co.th/...."
+
+then copy the URL exactly as provided.
+
+Do NOT create or complete the URL yourself.
 
 Affiliate tracking will be handled separately by the application.
 
@@ -456,6 +484,15 @@ Never invent:
 - roast level
 - URLs
 
+For URLs specifically:
+
+- A product URL must ALWAYS originate from an actual search result or retrieved source.
+- The AI is NOT allowed to generate or reconstruct product URLs.
+- The AI is NOT allowed to guess Shop IDs, Item IDs, product IDs, or URL slugs.
+- The AI is NOT allowed to modify or "complete" a partially available URL.
+- If an exact product URL is not available from the search result or retrieved source, return:
+  "product_url": null
+
 If information is unavailable:
 
 return null.
@@ -467,3 +504,4 @@ do not present it as a fact.
 Always prioritize the original Shopee Thailand or Lazada Thailand product page as the source.
 
 `;
+```
