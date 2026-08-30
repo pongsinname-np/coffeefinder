@@ -1,6 +1,3 @@
-```javascript
-// prompt.js - Coffee Product Researcher Prompt
-// Edit this file to update the AI prompt without touching index.html
 
 const COFFEE_RESEARCH_PROMPT = `
 
